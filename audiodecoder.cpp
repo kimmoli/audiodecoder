@@ -42,16 +42,10 @@
 #include <QQueue>
 #include <stdio.h>
 
-AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete, int sampleRate)
+AudioDecoder::AudioDecoder(int sampleRate)
     : m_cout(stdout, QIODevice::WriteOnly)
 {
-    m_isPlayback = isPlayback;
-    m_isDelete = isDelete;
 
-    m_buffers = 0;
-
-    // Make sure the data we receive is in correct PCM format.
-    // Our wav file writer only supports SignedInt sample type.
     QAudioFormat format;
     format.setChannelCount(2);
     format.setSampleSize(16);
@@ -66,9 +60,6 @@ AudioDecoder::AudioDecoder(bool isPlayback, bool isDelete, int sampleRate)
     connect(&m_decoder, SIGNAL(finished()), this, SLOT(finished()));
     connect(&m_decoder, SIGNAL(positionChanged(qint64)), this, SLOT(updateProgress()));
     connect(&m_decoder, SIGNAL(durationChanged(qint64)), this, SLOT(updateProgress()));
-
-    connect(&m_soundEffect, SIGNAL(statusChanged()), this, SLOT(playbackStatusChanged()));
-    connect(&m_soundEffect, SIGNAL(playingChanged()), this, SLOT(playingChanged()));
 
     m_progress = -1.0;
 }
@@ -88,11 +79,6 @@ void AudioDecoder::stop()
     m_decoder.stop();
 }
 
-void AudioDecoder::setTargetFilename(const QString &fileName)
-{
-    m_targetFilename = fileName;
-}
-
 void AudioDecoder::bufferReady()
 {
     // read a buffer from audio decoder
@@ -100,21 +86,7 @@ void AudioDecoder::bufferReady()
     if (!buffer.isValid())
         return;
 
-    //const quint16 *data = buffer.data<quint16>();
-
-    m_buffers++;
-
     bufferQueue.enqueue(buffer);
-
-    if (m_buffers < 10)
-        m_cout << "bytes: " << buffer.byteCount() << " duration: " << buffer.duration() << endl;
-
-//    if (!m_fileWriter.isOpen() && !m_fileWriter.open(m_targetFilename, buffer.format())) {
-//        m_decoder.stop();
-//        return;
-//    }
-
-//    m_fileWriter.write(buffer);
 }
 
 void AudioDecoder::error(QAudioDecoder::Error error)
@@ -155,46 +127,10 @@ void AudioDecoder::stateChanged(QAudioDecoder::State newState)
 
 void AudioDecoder::finished()
 {
-//    if (!m_fileWriter.close())
-//        m_cout << "Failed to finilize output file" << endl;
 
     m_cout << "Decoding finished" << endl;
 
-    QAudioBuffer buffer;
-
-    for (int i=0 ; i<10; i++)
-    {
-        if(bufferQueue.isEmpty())
-            break;
-        buffer = bufferQueue.dequeue();
-        m_cout << "bytes: " << buffer.byteCount() << " duration: " << buffer.duration() << endl;
-    }
-
-    if (m_isPlayback) {
-        m_cout << "Starting playback" << endl;
-        m_soundEffect.setSource(QUrl::fromLocalFile(m_targetFilename));
-        m_soundEffect.play();
-    } else {
-        emit done();
-    }
-}
-
-void AudioDecoder::playbackStatusChanged()
-{
-    if (m_soundEffect.status() == QSoundEffect::Error) {
-        m_cout << "Playback error" << endl;
-        emit done();
-    }
-}
-
-void AudioDecoder::playingChanged()
-{
-    if (!m_soundEffect.isPlaying()) {
-        m_cout << "Playback finished" << endl;
-        if (m_isDelete)
-            QFile::remove(m_targetFilename);
-        emit done();
-    }
+    emit done();
 }
 
 void AudioDecoder::updateProgress()

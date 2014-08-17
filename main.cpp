@@ -52,49 +52,31 @@ int main(int argc, char *argv[])
     QCoreApplication app(argc, argv);
 
     QTextStream cout(stdout, QIODevice::WriteOnly);
-    if (app.arguments().size() < 2) {
-        cout << "Usage: audiodecoder [-p] [-pd] SOURCEFILE [TARGETFILE]" << endl;
-        cout << "Set -p option if you want to play output file." << endl;
-        cout << "Set -pd option if you want to play output file and delete it after successful playback." << endl;
-        cout << "Default TARGETFILE name is \"out.wav\" in the same directory as the source file." << endl;
+    if (app.arguments().size() < 2)
+    {
+        cout << "Usage: audiodecoder SOURCEFILE [sample rate]" << endl;
+        cout << "default sample rate is 48000" << endl;
         return 0;
-    }
-
-    bool isPlayback = false;
-    bool isDelete = false;
-
-    if (app.arguments().at(1) == "-p")
-        isPlayback = true;
-    else if (app.arguments().at(1) == "-pd") {
-        isPlayback = true;
-        isDelete = true;
     }
 
     QFileInfo sourceFile;
-    QFileInfo targetFile;
 
-    int sourceFileIndex = (isPlayback || isDelete) ? 2 : 1;
-    if (app.arguments().size() <= sourceFileIndex) {
-        cout << "Error: source filename is not specified." << endl;
-        return 0;
-    }
-    sourceFile.setFile(app.arguments().at(sourceFileIndex));
+    sourceFile.setFile(app.arguments().at(1));
 
     int sampleRate = 48000;
 
-    if (app.arguments().size() > sourceFileIndex + 1)
+    if (app.arguments().size() > 2)
     {
-        sampleRate = app.arguments().at(sourceFileIndex + 1).toInt();
+        sampleRate = app.arguments().at(2).toInt();
     }
 
     cout << "Samplerate is " << sampleRate << endl;
 
-    targetFile.setFile(sourceFile.dir().absoluteFilePath("out.wav"));
+    AudioDecoder decoder(sampleRate);
 
-    AudioDecoder decoder(isPlayback, isDelete, sampleRate);
     QObject::connect(&decoder, SIGNAL(done()), &app, SLOT(quit()));
+
     decoder.setSourceFilename(sourceFile.absoluteFilePath());
-    decoder.setTargetFilename(targetFile.absoluteFilePath());
     decoder.start();
 
     return app.exec();

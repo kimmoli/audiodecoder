@@ -41,8 +41,6 @@
 #ifndef AUDIODECODER_H
 #define AUDIODECODER_H
 
-#include "wavefilewriter.h"
-
 #include <QAudioDecoder>
 #include <QSoundEffect>
 #include <QTextStream>
@@ -53,14 +51,12 @@ class AudioDecoder : public QObject
     Q_OBJECT
 
 public:
-    AudioDecoder(bool isPlayback, bool isDelete, int sampleRate);
+    AudioDecoder(int sampleRate);
     ~AudioDecoder() { }
 
     void setSourceFilename(const QString &fileName);
     void start();
     void stop();
-
-    void setTargetFilename(const QString &fileName);
 
 signals:
     void done();
@@ -71,9 +67,6 @@ public slots:
     void stateChanged(QAudioDecoder::State newState);
     void finished();
 
-    void playbackStatusChanged();
-    void playingChanged();
-
 private slots:
     void updateProgress();
 
@@ -83,15 +76,9 @@ private:
     QAudioDecoder m_decoder;
     QTextStream m_cout;
 
-    QString m_targetFilename;
-    WaveFileWriter m_fileWriter;
-    QSoundEffect m_soundEffect;
-
     qreal m_progress;
 
     QQueue<QAudioBuffer> bufferQueue;
-
-    int m_buffers;
 };
 
 #endif // AUDIODECODER_H
