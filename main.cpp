@@ -39,11 +39,13 @@
 ****************************************************************************/
 
 #include "audiodecoder.h"
+#include "streamer.h"
 
 #include <QCoreApplication>
 #include <QDir>
 #include <QFileInfo>
 #include <QTextStream>
+#include <QThread>
 
 #include <stdio.h>
 
@@ -72,12 +74,25 @@ int main(int argc, char *argv[])
 
     cout << "Samplerate is " << sampleRate << endl;
 
-    AudioDecoder decoder(sampleRate);
+    AudioDecoder* decoder = new AudioDecoder(sampleRate);
+    QThread* worker = new QThread();
+    Streamer* streamer = new Streamer(sampleRate);
 
-    QObject::connect(&decoder, SIGNAL(done()), &app, SLOT(quit()));
+    streamer->moveToThread(worker);
 
-    decoder.setSourceFilename(sourceFile.absoluteFilePath());
-    decoder.start();
+    QObject::connect(streamer, SIGNAL(playingRequested()), worker, SLOT(start()));
+    QObject::connect(worker, SIGNAL(started()), streamer, SLOT(play()));
+    QObject::connect(streamer, SIGNAL(finished()), worker, SLOT(quit()), Qt::DirectConnection);
 
-    return app.exec();
+    QObject::connect(streamer, SIGNAL(finished()), &app, SLOT(quit()));
+    QObject::connect(decoder, SIGNAL(enqueue(QAudioBuffer)), streamer, SLOT(queueThis(QAudioBuffer)), Qt::DirectConnection);
+
+    decoder->setSourceFilename(sourceFile.absoluteFilePath());
+    decoder->start();
+
+    int i = app.exec();
+
+    cout << "app exiting with status " << i << endl;
+
+    return i;
 }

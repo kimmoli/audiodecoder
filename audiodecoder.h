@@ -42,9 +42,7 @@
 #define AUDIODECODER_H
 
 #include <QAudioDecoder>
-#include <QSoundEffect>
 #include <QTextStream>
-#include <QQueue>
 
 class AudioDecoder : public QObject
 {
@@ -60,6 +58,7 @@ public:
 
 signals:
     void done();
+    void enqueue(QAudioBuffer);
 
 public slots:
     void bufferReady();
@@ -71,14 +70,11 @@ private slots:
     void updateProgress();
 
 private:
-    bool m_isPlayback;
-    bool m_isDelete;
+
     QAudioDecoder m_decoder;
     QTextStream m_cout;
 
     qreal m_progress;
-
-    QQueue<QAudioBuffer> bufferQueue;
 };
 
 #endif // AUDIODECODER_H

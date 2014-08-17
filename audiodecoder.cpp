@@ -39,12 +39,13 @@
 ****************************************************************************/
 
 #include "audiodecoder.h"
-#include <QQueue>
 #include <stdio.h>
 
 AudioDecoder::AudioDecoder(int sampleRate)
     : m_cout(stdout, QIODevice::WriteOnly)
 {
+
+    m_cout << "decoder created" << endl;
 
     QAudioFormat format;
     format.setChannelCount(2);
@@ -86,7 +87,7 @@ void AudioDecoder::bufferReady()
     if (!buffer.isValid())
         return;
 
-    bufferQueue.enqueue(buffer);
+    emit enqueue(buffer);
 }
 
 void AudioDecoder::error(QAudioDecoder::Error error)
@@ -116,6 +117,7 @@ void AudioDecoder::stateChanged(QAudioDecoder::State newState)
     switch (newState) {
     case QAudioDecoder::DecodingState:
         m_cout << "Decoding..." << endl;
+        m_cout << "Audio duration " << m_decoder.duration() << "ms" << endl;
         break;
     case QAudioDecoder::StoppedState:
         m_cout << "Decoding stopped" << endl;
