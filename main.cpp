@@ -57,7 +57,9 @@ int main(int argc, char *argv[])
     if (app.arguments().size() < 2)
     {
         cout << "Usage: audiodecoder SOURCEFILE [sample rate]" << endl;
-        cout << "default sample rate is 48000" << endl;
+        cout << "default sample rate is 48000" << endl << endl;
+        cout << "Note that wav is output to stdout! redirect to file or pipe to gst-launch" << endl;
+        cout << " e.g. gst-launch-0.10 -v fdsrc ! wavparse ! audioconvert ! alsasink" << endl;
         return 0;
     }
 
