@@ -48,15 +48,17 @@
 #include <QThread>
 
 #include <stdio.h>
+#include <unistd.h>
 
 int main(int argc, char *argv[])
 {
     QCoreApplication app(argc, argv);
 
     QTextStream cout(stderr, QIODevice::WriteOnly);
-    if (app.arguments().size() < 2)
+
+    if ((app.arguments().size() < 2) || (isatty(fileno(stdout))))
     {
-        cout << "Usage: audiodecoder SOURCEFILE [sample rate]" << endl;
+        cout << "Usage: audiodecoder SOURCEFILE [sample rate] |> ..." << endl;
         cout << "default sample rate is 48000" << endl << endl;
         cout << "Note that wav is output to stdout! redirect to file or pipe to gst-launch" << endl;
         cout << " e.g. gst-launch-0.10 -v fdsrc ! wavparse ! audioconvert ! alsasink" << endl;
