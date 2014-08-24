@@ -42,7 +42,7 @@
 #include <stdio.h>
 
 AudioDecoder::AudioDecoder(int sampleRate)
-    : m_cout(stdout, QIODevice::WriteOnly)
+    : m_cout(stderr, QIODevice::WriteOnly)
 {
 
     m_cout << "decoder created" << endl;

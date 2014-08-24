@@ -13,6 +13,8 @@
 #include <QTextStream>
 #include <QQueue>
 
+#include "wavefilewriter.h"
+
 class Streamer : public QObject
 {
     Q_OBJECT
@@ -37,6 +39,9 @@ private:
 
     int m_sampleRate;
     QQueue<QAudioBuffer> m_bufferQueue;
+
+
+    WaveFileWriter m_fileWriter;
 
 };
 

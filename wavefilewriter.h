@@ -38,61 +38,33 @@
 **
 ****************************************************************************/
 
-#include "audiodecoder.h"
-#include "streamer.h"
+#ifndef WAVEFILEWRITER_H
+#define WAVEFILEWRITER_H
 
-#include <QCoreApplication>
-#include <QDir>
-#include <QFileInfo>
-#include <QTextStream>
-#include <QThread>
+#include <QAudioBuffer>
+#include <QFile>
+#include <QObject>
 
-#include <stdio.h>
-
-int main(int argc, char *argv[])
+class WaveFileWriter : public QObject
 {
-    QCoreApplication app(argc, argv);
+    Q_OBJECT
 
-    QTextStream cout(stderr, QIODevice::WriteOnly);
-    if (app.arguments().size() < 2)
-    {
-        cout << "Usage: audiodecoder SOURCEFILE [sample rate]" << endl;
-        cout << "default sample rate is 48000" << endl;
-        return 0;
-    }
+public:
+    explicit WaveFileWriter(QObject *parent = 0);
+    ~WaveFileWriter();
 
-    QFileInfo sourceFile;
+    bool open(const QString &fileName, const QAudioFormat &format);
+    bool write(const QAudioBuffer &buffer);
+    bool close();
+    bool isOpen() const { return file.isOpen(); }
 
-    sourceFile.setFile(app.arguments().at(1));
+private:
+    bool writeHeader(const QAudioFormat &format);
+    bool writeDataLength();
 
-    int sampleRate = 48000;
+    QFile file;
+    QAudioFormat m_format;
+    qint64 m_dataLength;
+};
 
-    if (app.arguments().size() > 2)
-    {
-        sampleRate = app.arguments().at(2).toInt();
-    }
-
-    cout << "Samplerate is " << sampleRate << endl;
-
-    AudioDecoder* decoder = new AudioDecoder(sampleRate);
-    QThread* worker = new QThread();
-    Streamer* streamer = new Streamer(sampleRate);
-
-    streamer->moveToThread(worker);
-
-    QObject::connect(streamer, SIGNAL(playingRequested()), worker, SLOT(start()));
-    QObject::connect(worker, SIGNAL(started()), streamer, SLOT(play()));
-    QObject::connect(streamer, SIGNAL(finished()), worker, SLOT(quit()), Qt::DirectConnection);
-
-    QObject::connect(streamer, SIGNAL(finished()), &app, SLOT(quit()));
-    QObject::connect(decoder, SIGNAL(enqueue(QAudioBuffer)), streamer, SLOT(queueThis(QAudioBuffer)), Qt::DirectConnection);
-
-    decoder->setSourceFilename(sourceFile.absoluteFilePath());
-    decoder->start();
-
-    int i = app.exec();
-
-    cout << "app exiting with status " << i << endl;
-
-    return i;
-}
+#endif // WAVEFILEWRITER_H

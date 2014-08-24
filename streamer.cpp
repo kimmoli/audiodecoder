@@ -12,7 +12,7 @@
 #include <stdio.h>
 
 Streamer::Streamer(int sampleRate)
-    : m_cout(stdout, QIODevice::WriteOnly)
+    : m_cout(stderr, QIODevice::WriteOnly)
 {
     m_sampleRate = sampleRate;
     m_playing = false;
@@ -46,6 +46,15 @@ void Streamer::play()
 
         // TODO: some serious shit here instead of sleep
         QThread::usleep(buffer.duration());
+
+
+        if (!m_fileWriter.isOpen() && !m_fileWriter.open("stdout", buffer.format()))
+        {
+            m_cout << "something broken, fixit. Streamer::play()";
+            return;
+        }
+
+        m_fileWriter.write(buffer);
 
     }
     while (!m_bufferQueue.empty());

@@ -3,10 +3,12 @@ TARGET = audiodecoder
 
 HEADERS = \
     audiodecoder.h \
-    streamer.h
+    streamer.h \
+    wavefilewriter.h
 SOURCES = main.cpp \
     audiodecoder.cpp \
-    streamer.cpp
+    streamer.cpp \
+    wavefilewriter.cpp
 
 QT += multimedia
 CONFIG += sailfishapp console
