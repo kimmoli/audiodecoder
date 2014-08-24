@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
 
     QObject::connect(streamer, SIGNAL(finished()), &app, SLOT(quit()));
     QObject::connect(decoder, SIGNAL(enqueue(QAudioBuffer)), streamer, SLOT(queueThis(QAudioBuffer)), Qt::DirectConnection);
-    QObject::connect(decoder, SIGNAL(done()), streamer, SLOT(decoderDone()));
+    QObject::connect(decoder, SIGNAL(done()), streamer, SLOT(decoderDone()), Qt::DirectConnection);
 
     decoder->setSourceFilename(sourceFile.absoluteFilePath());
     decoder->start();
