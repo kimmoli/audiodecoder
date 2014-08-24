@@ -30,10 +30,12 @@ signals:
 public slots:
     void queueThis(QAudioBuffer buffer);
     void play();
+    void decoderDone();
 
 private:
 
     bool m_playing;
+    bool m_canStop;
 
     QTextStream m_cout;
 
