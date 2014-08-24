@@ -45,12 +45,12 @@ void Streamer::play()
         m_cout << "this buffer " << buffer.byteCount() << " bytes, length " << buffer.duration()/1000 << "ms. buffers left in queue " << m_bufferQueue.count() << endl;
 
         // TODO: some serious shit here instead of sleep
-        QThread::usleep(buffer.duration());
+        // QThread::usleep(buffer.duration());
 
 
         if (!m_fileWriter.isOpen() && !m_fileWriter.open("stdout", buffer.format()))
         {
-            m_cout << "something broken, fixit. Streamer::play()";
+            m_cout << "something broken, fixit. Streamer::play()" << endl;
             return;
         }
 
